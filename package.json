@@ -1,0 +1,29 @@
+{
+  "name": "u4d10",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DrPleasure/U4D10_solo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DrPleasure/U4D10_solo/issues"
+  },
+  "homepage": "https://github.com/DrPleasure/U4D10_solo#readme",
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
+    "express-list-endpoints": "^6.0.0",
+    "nodemon": "^2.0.20",
+    "pdfkit": "^0.13.0",
+    "uniqid": "^5.4.0"
+  }
+}
