@@ -56,9 +56,41 @@ app.get('/medias/search', async (req, res) => {
       console.error(error);
       res.status(500).json({ message: 'Something went wrong.' });
     }
+  });app.get('/medias/search', async (req, res) => {
+    const { title } = req.query;
+    const media = medias.find(m => m.title === title);
+    if (media) {
+      return res.json(media);
+    }
+    try {
+        const response = await axios.get('http://www.omdbapi.com/', {
+            params: {
+                apikey: 'daa9e658',
+                t: title
+            }
+        });
+        if (response.data.Response === "True")  {
+        const newMedia = {
+          id: uniqid(),
+          title: response.data.Title,
+          year: response.data.Year,
+          imdbID: response.data.imdbID,
+          type: response.data.Type,
+          poster: response.data.Poster
+        }
+        medias.push(newMedia);
+        fs.writeFileSync('data.json', JSON.stringify(medias));
+        res.json(newMedia);
+      } else {
+        res.status(404).json({ message: 'Media not found.' });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Something went wrong.' });
+    }
   });
   
-  // The rest of your code...
+  
   
 
 
