@@ -4,6 +4,8 @@ const pdfkit = require('pdfkit');
 const fs = require('fs');
 const listEndpoints = require('express-list-endpoints');
 const uniqid = require('uniqid');
+const cors = require('cors');
+
 
 const app = express();
 
@@ -17,6 +19,8 @@ try {
 }
 
 app.use(bodyParser.json());
+app.use(cors());
+
 
 app.post('/medias', (req, res) => {
   const media = req.body;
