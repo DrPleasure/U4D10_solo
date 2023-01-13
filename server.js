@@ -43,14 +43,16 @@ app.get('/medias/:id', (req, res) => {
   }
 });
 
-app.post('/medias/:id/poster', (req, res) => {
-  const media = medias.find(m => m.id === req.params.id);
-  if (media) {
-    media.poster = req.body.poster;
-    res.status(200).json({ message: 'Poster uploaded successfully.' });
-  } else {
-    res.status(404).send(`Media not found with id: ${req.params.id}`);
-  }
+app.put('/medias/:id/poster', (req, res) => {
+    const { id } = req.params;
+    const { poster } = req.body;
+    const mediaIndex = medias.findIndex(m => m.id === id);
+    if (mediaIndex === -1) {
+        return res.status(404).json({ message: 'Media not found.' });
+    }
+    medias[mediaIndex].poster = poster;
+    fs.writeFileSync('data.json', JSON.stringify(medias));
+    res.status(200).json({ message: 'Poster updated successfully.' });
 });
 
 app.get('/medias/:id/pdf', (req, res) => {
