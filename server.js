@@ -230,7 +230,7 @@ app.get('/medias/:id/pdf', (req, res) => {
         commentsHTML += `<li>${comment.comment}</li>`;
     });
   } else {
-    commentsHTML = "<li>There are no comments for this media</li>";
+    commentsHTML = "There are no comments for this media";
   }
   let html = `
 
