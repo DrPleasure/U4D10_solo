@@ -32,14 +32,6 @@
     "poster": "https://m.media-amazon.com/images/M/MV5BMDdmZGU3NDQtY2E5My00ZTliLWIzOTUtMTY4ZGI1YjdiNjk3XkEyXkFqcGdeQXVyNTA4NzY1MzY@._V1_SX300.jpg"
   },
   {
-    "id": "1hv47ur25lcuptz48",
-    "title": "Terminator",
-    "year": "1991",
-    "imdbID": "tt5817168",
-    "type": "movie",
-    "poster": "N/A"
-  },
-  {
     "id": "1hv47ur4ylcupwgq8",
     "title": "The Aristocats",
     "year": "1970",
@@ -49,11 +41,19 @@
     "comments": [
       {
         "_id": "1hv47uu60lcxbmgho",
-        "comment": "Amazing movie. Roquefort is my favorite and Thomas O'malley is a great cat too. Edgar is evil",
+        "comment": "Amazing movie. Roquefort is my favorite and Thomas O'malley is a great cat too. Edgar is evil - I also love potatoes",
         "rate": 5,
         "imdbId": "tt0065421",
         "createdAt": "2023-01-15T11:55:41.435Z"
       }
     ]
+  },
+  {
+    "id": "1hv47uw1tlcxfkme5",
+    "title": "Jumanji",
+    "year": "1995",
+    "imdbID": "tt0113497",
+    "type": "movie",
+    "poster": "https://m.media-amazon.com/images/M/MV5BZTk2ZmUwYmEtNTcwZS00YmMyLWFkYjMtNTRmZDA3YWExMjc2XkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg"
   }
 ]

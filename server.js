@@ -35,7 +35,7 @@ OMDB_API_KEY=process.env.OMDB_API_KEY
 
 app.post('/medias/:id/comments', (req, res) => {
   const { id } = req.params;
-  const media = medias.find(m => m.imdbID === id);
+  const media = medias.find(m => m.id === id);
   if (!media) {
       return res.status(404).json({ message: 'Media not found.' });
   }
@@ -57,6 +57,72 @@ app.post('/medias/:id/comments', (req, res) => {
   fs.writeFileSync('data.json', JSON.stringify(medias));
   res.json(newComment);
 });
+
+// retrieve single comment by ID endpoint
+
+app.get('/medias/:id/comments/:commentId', (req, res) => {
+  const { id, commentId } = req.params;
+  const media = medias.find(m => m.id === id);
+  if (!media) {
+      return res.status(404).json({ message: 'Media not found.' });
+  }
+  if(!media.comments) {
+      return res.status(404).json({ message: 'Media comments not found.' });
+  }
+  const comment = media.comments.find(c => c._id === commentId);
+  if (!comment) {
+      return res.status(404).json({ message: 'Comment not found.' });
+  }
+  res.json(comment);
+});
+
+
+// PUT endpoint for comments
+
+app.put('/medias/:id/comments/:commentId', (req, res) => {
+  const { id, commentId } = req.params;
+  const media = medias.find(m => m.id === id);
+  if (!media) {
+      return res.status(404).json({ message: 'Media not found.' });
+  }
+  if(!media.comments) {
+      return res.status(404).json({ message: 'Media comments not found.' });
+  }
+  const commentIndex = media.comments.findIndex(c => c._id === commentId);
+  if (commentIndex === -1) {
+      return res.status(404).json({ message: 'Comment not found.' });
+  }
+  const { comment, rate } = req.body;
+  if (!comment || !rate || rate > 5) {
+      return res.status(400).json({ message: 'Invalid comment or rate.' });
+  }
+  media.comments[commentIndex] = { ...media.comments[commentIndex], comment, rate };
+  fs.writeFileSync('data.json', JSON.stringify(medias));
+  res.json(media.comments[commentIndex]);
+});
+
+// DELETE endpoint for comments
+app.delete('/medias/:id/comments/:commentId', (req, res) => {
+  const { id, commentId } = req.params;
+  const media = medias.find(m => m.id === id);
+  if (!media) {
+      return res.status(404).json({ message: 'Media not found.' });
+  }
+  if(!media.comments) {
+      return res.status(404).json({ message: 'Media comments not found.' });
+  }
+  const commentIndex = media.comments.findIndex(c => c._id === commentId);
+  if (commentIndex === -1) {
+      return res.status(404).json({ message: 'Comment not found.' });
+  }
+  media.comments.splice(commentIndex, 1);
+  fs.writeFileSync('data.json', JSON.stringify(medias));
+  res.json({ message: 'Comment deleted.' });
+});
+
+
+
+
 
 
 
@@ -162,6 +228,19 @@ app.put('/medias/:id/poster', (req, res) => {
     fs.writeFileSync('data.json', JSON.stringify(medias));
     res.status(200).json({ message: 'Poster updated successfully.' });
 });
+
+// DELETE ENDPOINT FOR MEDIA FILE
+app.delete('/medias/:id', (req, res) => {
+  const { id } = req.params;
+  const mediaIndex = medias.findIndex(m => m.id === id);
+  if (mediaIndex === -1) {
+      return res.status(404).json({ message: 'Media not found.' });
+  }
+  medias.splice(mediaIndex, 1);
+  fs.writeFileSync('data.json', JSON.stringify(medias));
+  res.json({ message: 'Media deleted.' });
+});
+
 
 app.get('/medias/:id/pdf', (req, res) => {
   const { id } = req.params;
