@@ -1,12 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const pdfkit = require('pdfkit');
+const PDFDocument = require('pdfkit');
+const pdf = new PDFDocument();
+
 const fs = require('fs');
 const listEndpoints = require('express-list-endpoints');
 const uniqid = require('uniqid');
 const cors = require('cors');
 const axios = require('axios');
+const jsdom = require("jsdom");
 
+const { JSDOM } = jsdom
+const options = {};
 
 const app = express();
 
@@ -23,6 +28,37 @@ app.use(bodyParser.json());
 app.use(cors());
 
 OMDB_API_KEY=process.env.OMDB_API_KEY
+
+
+
+// ADD COMMENT ENDPOINT
+
+app.post('/medias/:id/comments', (req, res) => {
+  const { id } = req.params;
+  const media = medias.find(m => m.imdbID === id);
+  if (!media) {
+      return res.status(404).json({ message: 'Media not found.' });
+  }
+  const { comment, rate } = req.body;
+  if (!comment || !rate || rate > 5) {
+      return res.status(400).json({ message: 'Invalid comment or rate.' });
+  }
+  const newComment = {
+      _id: uniqid(),
+      comment,
+      rate,
+      imdbId: id,
+      createdAt: new Date()
+  };
+  if(!media.comments){
+    media.comments = []
+  }
+  media.comments.push(newComment)
+  fs.writeFileSync('data.json', JSON.stringify(medias));
+  res.json(newComment);
+});
+
+
 
 app.get('/medias/search', async (req, res) => {
     const { title } = req.query;
@@ -128,24 +164,55 @@ app.put('/medias/:id/poster', (req, res) => {
 });
 
 app.get('/medias/:id/pdf', (req, res) => {
-  const media = medias.find(m => m.id === req.params.id);
-  if (media) {
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=' + media.title + '.pdf');
-    const pdf = new pdfkit();
-    pdf.pipe(res);
-    pdf.text('Title: ' + media.title);
-    pdf.text('Year: ' + media.year);
-    pdf.text('imdbID: ' + media.imdbID);
-    pdf.text('Type: ' + media.type);
-    pdf.text('Poster: ' + media.poster);
-    pdf.end();
-  } else {
-    res.status(404).send(`Media not found with id: ${req.params.id}`);
+  const { id } = req.params;
+  const media = medias.find(m => m.id === id);
+  console.log(id)
+  console.log(media)
+  console.log(medias.find(m => m.id === id))
+  if (!media) {
+      return res.status(404).json({ message: 'Media not found.' });
   }
+  if(!media.comments) {
+      return res.status(404).json({ message: 'Media comments not found.' });
+  }
+  const { title, year, imdbID, type, poster, comments } = media;
+  let commentsHTML = "";
+  comments.forEach( comment => {
+    commentsHTML += `<li>${comment.comment}</li>`;
+  });
+  let html = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+      <title>Media Details</title>
+  </head>
+  <body>
+      <h1>${title}</h1>
+      <p>Year: ${year}</p>
+      <p>imdbID: ${imdbID}</p>
+      <p>Type: ${type}</p>
+      <img src="${poster}" alt="${title}">
+      <h2>Comments</h2>
+      <ul>
+          ${commentsHTML}
+      </ul>
+  </body>
+  </html>
+  `;
+  const doc = new PDFDocument();
+  res.setHeader('Content-disposition', 'attachment; filename=Movie-details.pdf');
+  res.setHeader('Content-type', 'application/pdf');
+  doc.pipe(res);
+  doc.text(html);
+  doc.end();
 });
 
+
+  
+
+
 console.log(listEndpoints(app));
+
 
 
 app.listen(3001, () => {
