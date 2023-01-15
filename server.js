@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const PDFDocument = require('pdfkit');
-const pdf = new PDFDocument();
 
 const fs = require('fs');
 const listEndpoints = require('express-list-endpoints');
@@ -9,6 +8,7 @@ const uniqid = require('uniqid');
 const cors = require('cors');
 const axios = require('axios');
 const jsdom = require("jsdom");
+const { response } = require('express');
 
 const { JSDOM } = jsdom
 const options = {};
@@ -146,39 +146,12 @@ app.get('/medias/search', async (req, res) => {
           year: response.data.Year,
           imdbID: response.data.imdbID,
           type: response.data.Type,
-          poster: response.data.Poster
-        }
-        medias.push(newMedia);
-        fs.writeFileSync('data.json', JSON.stringify(medias));
-        res.json(newMedia);
-      } else {
-        res.status(404).json({ message: 'Media not found.' });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Something went wrong.' });
-    }
-  });app.get('/medias/search', async (req, res) => {
-    const { title } = req.query;
-    const media = medias.find(m => m.title === title);
-    if (media) {
-      return res.json(media);
-    }
-    try {
-        const response = await axios.get('http://www.omdbapi.com/', {
-            params: {
-                apikey: 'daa9e658',
-                t: title
-            }
-        });
-        if (response.data.Response === "True")  {
-        const newMedia = {
-          id: uniqid(),
-          title: response.data.Title,
-          year: response.data.Year,
-          imdbID: response.data.imdbID,
-          type: response.data.Type,
-          poster: response.data.Poster
+          poster: response.data.Poster,
+          Metascore: response.data.Metascore,
+          imdbRating: response.data.imdbRating,
+          Awards: response.data.Awards,
+          RottenTomatoes: response.data.Ratings[1].Value
+
         }
         medias.push(newMedia);
         fs.writeFileSync('data.json', JSON.stringify(medias));
@@ -217,6 +190,20 @@ app.get('/medias/:id', (req, res) => {
   }
 });
 
+// DELETE MEDIA BY id
+
+app.delete('/medias/:id', (req, res) => {
+  const mediaIndex = medias.findIndex(m => m.id === req.params.id);
+  if (mediaIndex !== -1) {
+    medias.splice(mediaIndex, 1);
+    res.json({ message: `Media with id: ${req.params.id} deleted successfully` });
+  } else {
+    res.status(404).send(`Media not found with id: ${req.params.id}`);
+  }
+});
+
+
+
 app.put('/medias/:id/poster', (req, res) => {
     const { id } = req.params;
     const { poster } = req.body;
@@ -229,54 +216,40 @@ app.put('/medias/:id/poster', (req, res) => {
     res.status(200).json({ message: 'Poster updated successfully.' });
 });
 
-// DELETE ENDPOINT FOR MEDIA FILE
-app.delete('/medias/:id', (req, res) => {
-  const { id } = req.params;
-  const mediaIndex = medias.findIndex(m => m.id === id);
-  if (mediaIndex === -1) {
-      return res.status(404).json({ message: 'Media not found.' });
-  }
-  medias.splice(mediaIndex, 1);
-  fs.writeFileSync('data.json', JSON.stringify(medias));
-  res.json({ message: 'Media deleted.' });
-});
-
 
 app.get('/medias/:id/pdf', (req, res) => {
   const { id } = req.params;
   const media = medias.find(m => m.id === id);
-  console.log(id)
-  console.log(media)
-  console.log(medias.find(m => m.id === id))
   if (!media) {
       return res.status(404).json({ message: 'Media not found.' });
   }
-  if(!media.comments) {
-      return res.status(404).json({ message: 'Media comments not found.' });
-  }
-  const { title, year, imdbID, type, poster, comments } = media;
+  const { title, year, imdbID, type, poster, Metascore, imdbRating, Awards, RottenTomatoes } = media;
   let commentsHTML = "";
-  comments.forEach( comment => {
-    commentsHTML += `<li>${comment.comment}</li>`;
-  });
+  if (media.comments) {
+    media.comments.forEach( comment => {
+        commentsHTML += `<li>${comment.comment}</li>`;
+    });
+  } else {
+    commentsHTML = "<li>There are no comments for this media</li>";
+  }
   let html = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-      <title>Media Details</title>
-  </head>
-  <body>
-      <h1>${title}</h1>
-      <p>Year: ${year}</p>
-      <p>imdbID: ${imdbID}</p>
-      <p>Type: ${type}</p>
-      <img src="${poster}" alt="${title}">
-      <h2>Comments</h2>
-      <ul>
+
+      ${title}
+      Year: ${year}
+      imdbID: ${imdbID}
+      Type: ${type}
+
+      ----------- Ratings -----------
+      Metascore: ${Metascore}
+      imdbRating: ${imdbRating}
+      Awards: ${Awards}
+      RottenTomatoes:  ${RottenTomatoes}
+      -------------------------------
+     
+      Comments:
+     
           ${commentsHTML}
-      </ul>
-  </body>
-  </html>
+   
   `;
   const doc = new PDFDocument();
   res.setHeader('Content-disposition', 'attachment; filename=Movie-details.pdf');
@@ -285,6 +258,8 @@ app.get('/medias/:id/pdf', (req, res) => {
   doc.text(html);
   doc.end();
 });
+
+
 
 
   
