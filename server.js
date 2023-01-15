@@ -9,6 +9,7 @@ const cors = require('cors');
 const axios = require('axios');
 const jsdom = require("jsdom");
 const { response } = require('express');
+const { pipeline } = require('stream');
 
 const { JSDOM } = jsdom
 const options = {};
@@ -227,7 +228,7 @@ app.get('/medias/:id/pdf', (req, res) => {
   let commentsHTML = "";
   if (media.comments) {
     media.comments.forEach( comment => {
-        commentsHTML += `<li>${comment.comment}</li>`;
+        commentsHTML += `${comment.comment}`;
     });
   } else {
     commentsHTML = "There are no comments for this media";
@@ -242,10 +243,14 @@ app.get('/medias/:id/pdf', (req, res) => {
       ----------- Ratings -----------
       Metascore: ${Metascore}
       imdbRating: ${imdbRating}
-      Awards: ${Awards}
       RottenTomatoes:  ${RottenTomatoes}
+      
+      
       -------------------------------
-     
+
+      ----------- Awards: ----------- 
+      ${Awards}
+
       Comments:
      
           ${commentsHTML}
@@ -254,6 +259,10 @@ app.get('/medias/:id/pdf', (req, res) => {
   const doc = new PDFDocument();
   res.setHeader('Content-disposition', 'attachment; filename=Movie-details.pdf');
   res.setHeader('Content-type', 'application/pdf');
+  pipeline(source, destination, (err) => {
+    if (err) console.log(err);
+  });
+  
   doc.pipe(res);
   doc.text(html);
   doc.end();
