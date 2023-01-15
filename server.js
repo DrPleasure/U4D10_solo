@@ -259,14 +259,11 @@ app.get('/medias/:id/pdf', (req, res) => {
   const doc = new PDFDocument();
   res.setHeader('Content-disposition', 'attachment; filename=Movie-details.pdf');
   res.setHeader('Content-type', 'application/pdf');
-  pipeline(source, destination, (err) => {
-    if (err) console.log(err);
-  });
-  
   doc.pipe(res);
   doc.text(html);
   doc.end();
 });
+
 
 
 
